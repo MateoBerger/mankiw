@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa Mental – Oferta y Demanda</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --center: #f0e6ff;
+    --demand: #7c3aed;
+    --demand-light: #a78bfa;
+    --supply: #0ea5e9;
+    --supply-light: #7dd3fc;
+    --market: #10b981;
+    --market-light: #6ee7b7;
+    --equilibrium: #f59e0b;
+    --equilibrium-light: #fcd34d;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --line: rgba(255,255,255,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    text-align: center;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    padding: 2rem 1rem 0.4rem;
+    color: var(--center);
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  .map {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    padding: 0 1rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* Center node spans full width */
+  .center-node {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #2d1b69, #1e1040);
+    border: 2px solid var(--demand);
+    border-radius: 16px;
+    padding: 1.4rem 2rem;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(124,58,237,0.3);
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 30px rgba(124,58,237,0.25); }
+    50% { box-shadow: 0 0 55px rgba(124,58,237,0.45); }
+  }
+
+  .center-node h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--center);
+    margin-bottom: 0.3rem;
+  }
+
+  .center-node p {
+    color: var(--demand-light);
+    font-size: 0.82rem;
+    font-weight: 300;
+  }
+
+  /* Branch cards */
+  .branch {
+    border-radius: 14px;
+    padding: 1.2rem;
+    border: 1px solid var(--line);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .branch:hover {
+    transform: translateY(-3px);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .branch:nth-child(2) { animation-delay: 0.1s; }
+  .branch:nth-child(3) { animation-delay: 0.2s; }
+  .branch:nth-child(4) { animation-delay: 0.3s; }
+  .branch:nth-child(5) { animation-delay: 0.4s; }
+  .branch:nth-child(6) { animation-delay: 0.5s; }
+
+  .branch-market { background: linear-gradient(135deg, #052e16, #0a1a10); border-color: var(--market); }
+  .branch-demand { background: linear-gradient(135deg, #1e0a4a, #140830); border-color: var(--demand); }
+  .branch-supply { background: linear-gradient(135deg, #082a3f, #051622); border-color: var(--supply); }
+  .branch-equilibrium { background: linear-gradient(135deg, #3d2000, #1f1000); border-color: var(--equilibrium); grid-column: 1 / -1; }
+
+  .branch-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .branch-market .branch-title { color: var(--market-light); }
+  .branch-demand .branch-title { color: var(--demand-light); }
+  .branch-supply .branch-title { color: var(--supply-light); }
+  .branch-equilibrium .branch-title { color: var(--equilibrium-light); }
+
+  .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .branch-market .icon { background: rgba(16,185,129,0.2); }
+  .branch-demand .icon { background: rgba(124,58,237,0.2); }
+  .branch-supply .icon { background: rgba(14,165,233,0.2); }
+  .branch-equilibrium .icon { background: rgba(245,158,11,0.2); }
+
+  /* Concept chips */
+  .concepts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .concept {
+    border-radius: 8px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    background: rgba(255,255,255,0.04);
+    border-left: 3px solid transparent;
+    transition: background 0.2s;
+  }
+
+  .concept:hover { background: rgba(255,255,255,0.08); }
+
+  .branch-market .concept { border-left-color: var(--market); }
+  .branch-demand .concept { border-left-color: var(--demand-light); }
+  .branch-supply .concept { border-left-color: var(--supply); }
+  .branch-equilibrium .concept { border-left-color: var(--equilibrium); }
+
+  .concept strong {
+    display: block;
+    font-weight: 500;
+    font-size: 0.8rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .branch-market .concept strong { color: var(--market-light); }
+  .branch-demand .concept strong { color: var(--demand-light); }
+  .branch-supply .concept strong { color: var(--supply-light); }
+  .branch-equilibrium .concept strong { color: var(--equilibrium-light); }
+
+  .concept span {
+    color: var(--muted);
+    font-size: 0.74rem;
+    font-weight: 300;
+  }
+
+  /* Sub-grid for equilibrium */
+  .eq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  /* Shifters section inside demand/supply */
+  .shifters-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0.7rem 0 0.4rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .branch-demand .shifters-label { color: var(--demand-light); }
+  .branch-supply .shifters-label { color: var(--supply-light); }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .chip {
+    font-size: 0.72rem;
+    padding: 0.25rem 0.55rem;
+    border-radius: 20px;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .branch-demand .chip { background: rgba(124,58,237,0.2); color: var(--demand-light); }
+  .branch-supply .chip { background: rgba(14,165,233,0.18); color: var(--supply-light); }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.72rem;
+    padding-bottom: 2rem;
+    font-weight: 300;
+  }
+</style>
+</head>
+<body>
+
+<h1>Oferta y Demanda</h1>
+<p class="subtitle">Capítulo 4 — Mankiw · Principios de Economía</p>
+
+<div class="map">
+
+  <!-- CENTER -->
+  <div class="center-node">
+    <h2>Fuerzas del Mercado</h2>
+    <p>La oferta y la demanda determinan el precio y la cantidad de todo bien en una economía de mercado</p>
+  </div>
+
+  <!-- MERCADOS Y COMPETENCIA -->
+  <div class="branch branch-market">
+    <div class="branch-title">
+      <div class="icon">🏪</div>
+      Mercados y Competencia
+    </div>
+    <div class="concepts">
+      <div class="concept">
+        <strong>Mercado</strong>
+        <span>Grupo de compradores y vendedores de un mismo bien o servicio</span>
+      </div>
+      <div class="concept">
+        <strong>Mercado perfectamente competitivo</strong>
+        <span>Productos idénticos + tantos participantes que nadie puede influir en el precio → todos son tomadores de precios</span>
+      </div>
+      <div class="concept">
+        <strong>Monopolio</strong>
+        <span>Un solo vendedor que fija el precio a su antojo. Extremo opuesto a la competencia perfecta</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEMANDA -->
+  <div class="branch branch-demand">
+    <div class="branch-title">
+      <div class="icon">📉</div>
+      La Demanda
+    </div>
+    <div class="concepts">
+      <div class="concept">
+        <strong>Cantidad demandada</strong>
+        <span>Cuánto están dispuestos y pueden comprar los consumidores a un precio dado</span>
+      </div>
+      <div class="concept">
+        <strong>Ley de la demanda</strong>
+        <span>Precio ↑ → Cantidad demandada ↓ · Relación inversa</span>
+      </div>
+      <div class="concept">
+        <strong>Curva de la demanda</strong>
+        <span>Pendiente negativa. Precio en eje Y, cantidad en eje X</span>
+      </div>
+      <div class="concept">
+        <strong>Demanda de mercado</strong>
+        <span>Suma de todas las demandas individuales (suma horizontal de curvas)</span>
+      </div>
+      <div class="concept">
+        <strong>Bien normal vs. Bien inferior</strong>
+        <span>Normal: ingreso ↑ → demanda ↑ · Inferior: ingreso ↑ → demanda ↓ (ej: micro)</span>
+      </div>
+      <div class="concept">
+        <strong>Sustitutos vs. Complementarios</strong>
+        <span>Sustitutos: precio de A ↑ → demanda de B ↑ (pollo/carne) · Complementarios: precio de A ↑ → demanda de B ↓ (helado/jarabe)</span>
+      </div>
+    </div>
+    <div class="shifters-label">Desplazan la curva (no el precio)</div>
+    <div class="chips">
+      <span class="chip">Ingreso</span>
+      <span class="chip">Precios relacionados</span>
+      <span class="chip">Gustos</span>
+      <span class="chip">Expectativas</span>
+      <span class="chip">Nº compradores</span>
+    </div>
+  </div>
+
+  <!-- OFERTA -->
+  <div class="branch branch-supply">
+    <div class="branch-title">
+      <div class="icon">📈</div>
+      La Oferta
+    </div>
+    <div class="concepts">
+      <div class="concept">
+        <strong>Cantidad ofrecida</strong>
+        <span>Cuánto están dispuestos y pueden vender los productores a un precio dado</span>
+      </div>
+      <div class="concept">
+        <strong>Ley de la oferta</strong>
+        <span>Precio ↑ → Cantidad ofrecida ↑ · Relación directa</span>
+      </div>
+      <div class="concept">
+        <strong>Curva de la oferta</strong>
+        <span>Pendiente positiva. A mayor precio, mayor cantidad ofrecida</span>
+      </div>
+      <div class="concept">
+        <strong>Oferta de mercado</strong>
+        <span>Suma de todas las ofertas individuales (suma horizontal de curvas)</span>
+      </div>
+      <div class="concept">
+        <strong>Precio de insumos</strong>
+        <span>Insumos más caros → menos rentable producir → oferta baja</span>
+      </div>
+      <div class="concept">
+        <strong>Tecnología</strong>
+        <span>Mejor tecnología → menores costos → oferta sube</span>
+      </div>
+    </div>
+    <div class="shifters-label">Desplazan la curva (no el precio)</div>
+    <div class="chips">
+      <span class="chip">Precio insumos</span>
+      <span class="chip">Tecnología</span>
+      <span class="chip">Expectativas</span>
+      <span class="chip">Nº vendedores</span>
+    </div>
+  </div>
+
+  <!-- EQUILIBRIO -->
+  <div class="branch branch-equilibrium">
+    <div class="branch-title">
+      <div class="icon">⚖️</div>
+      Equilibrio del Mercado
+    </div>
+    <div class="eq-grid">
+      <div class="concept">
+        <strong>Equilibrio</strong>
+        <span>Punto donde se cruzan las curvas de oferta y demanda. Cantidad ofrecida = cantidad demandada</span>
+      </div>
+      <div class="concept">
+        <strong>Excedente (exceso de oferta)</strong>
+        <span>Precio está SOBRE el equilibrio → sobra producto → vendedores bajan precio → vuelve al equilibrio</span>
+      </div>
+      <div class="concept">
+        <strong>Escasez (exceso de demanda)</strong>
+        <span>Precio está BAJO el equilibrio → falta producto → compradores compiten → precio sube solo al equilibrio</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>El mercado se corrige solo — sin intervención externa</footer>
+
+</body>
+</html>
